@@ -151,7 +151,7 @@ public class UserData
                 }
             }
             // Make brute force attacks inefficient
-            Thread.sleep(1000);
+            Thread.sleep(2000);
             return areEqual;
         }
         catch (Exception ex)
