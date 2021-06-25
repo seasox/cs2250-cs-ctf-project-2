@@ -1,6 +1,5 @@
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.*;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -130,7 +129,7 @@ public class ServerMain
                 kmf = KeyManagerFactory.getInstance("SunX509");
                 ks = KeyStore.getInstance("JKS");
 
-                ks.load(new FileInputStream("assets/keystore.jks"), passphrase);
+                ks.load(KeyStores.toInputStream(), passphrase);
                 kmf.init(ks, passphrase);
                 ctx.init(kmf.getKeyManagers(), null, null);
 
