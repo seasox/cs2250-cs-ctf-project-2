@@ -136,17 +136,23 @@ public class UserData
     {
         try
         {
-            // Compare passwords
+            // Compare passwords in constant-time
+            // if the passwords are not of equal length, start with areEquals = false
+            // but still run the loop to achieve constant-time. charAt might throw
+            // which we catch and just set areEqual to false (which will already be
+            // false anyway, since charAt throws iff password.length() != _password.length()
+            boolean areEqual = password.length() == _password.length();
             for (int i = 0; i < password.length(); ++i)
             {
-                // Matching character?
-                if (password.charAt(i) != _password.charAt(i))
-                    return false;
-
-                // Make brute force attacks inefficient
-                Thread.sleep(500);
+                try {
+                    areEqual &= (password.charAt(i) == _password.charAt(i));
+                } catch (IndexOutOfBoundsException e) {
+                    areEqual = false;
+                }
             }
-            return true;
+            // Make brute force attacks inefficient
+            Thread.sleep(1000);
+            return areEqual;
         }
         catch (Exception ex)
         {
