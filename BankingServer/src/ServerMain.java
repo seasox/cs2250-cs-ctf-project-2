@@ -1,8 +1,11 @@
+import javax.net.ServerSocketFactory;
 import javax.net.ssl.*;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 
 public class ServerMain
@@ -88,9 +91,12 @@ public class ServerMain
         Utility.safeDebugPrintln("Reading database file '" + args[1] + "'...");
         Database database = new Database(args[1]);
 
+        // create TLS server socket factory
+        ServerSocketFactory factory = getServerSocketFactory("TLS");
+
         // Create server socket
         Utility.safeDebugPrintln("Creating server socket...");
-        try (ServerSocket serverSocket = new ServerSocket(port, 0, InetAddress.getByName(ip)))
+        try (ServerSocket serverSocket = factory.createServerSocket(port, 0, InetAddress.getByName(ip)))
         {
             // Listen for clients
             Utility.safeDebugPrintln("Enter client listen loop.");
@@ -108,5 +114,34 @@ public class ServerMain
         {
             e.printStackTrace();
         }
+    }
+
+    private static ServerSocketFactory getServerSocketFactory(String type) {
+        if (type.equals("TLS")) {
+            SSLServerSocketFactory ssf = null;
+            try {
+                // set up key manager to do server authentication
+                SSLContext ctx;
+                KeyManagerFactory kmf;
+                KeyStore ks;
+                char[] passphrase = "securepassword".toCharArray();
+
+                ctx = SSLContext.getInstance("TLS");
+                kmf = KeyManagerFactory.getInstance("SunX509");
+                ks = KeyStore.getInstance("JKS");
+
+                ks.load(new FileInputStream("assets/keystore.jks"), passphrase);
+                kmf.init(ks, passphrase);
+                ctx.init(kmf.getKeyManagers(), null, null);
+
+                ssf = ctx.getServerSocketFactory();
+                return ssf;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            return ServerSocketFactory.getDefault();
+        }
+        return null;
     }
 }
